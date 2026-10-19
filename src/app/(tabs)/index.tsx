@@ -1,8 +1,8 @@
-import React, { useState } from "react";
+import { Ionicons } from "@expo/vector-icons";
+import { useState } from "react";
 import {
   Alert,
   Button,
-  FlatList,
   Image,
   Pressable,
   SafeAreaView,
@@ -13,9 +13,7 @@ import {
   TextInput,
   View,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
 
-// 1. IMPORT TYPE & INTERFACE (Materi Modul 1: Type & Interface)
 import {
   ServiceCategory,
   ServiceItem,
@@ -24,12 +22,8 @@ import {
   ServiceSummary,
 } from "@/types/service";
 
-// 2. IMPORT EXTERNAL STYLING (Materi Modul 1: External Styling)
 import { externalStyles } from "@/constants/serviceStyles";
-
-// ============================================================================
-// DATA AWAL: ARRAY OF OBJECTS (Materi Modul 1: Array of Objects)
-// ============================================================================
+import { useRouter } from "expo-router";
 
 // Daftar Paket Jasa Service Laptop
 const DAFTAR_PAKET: ServicePackage[] = [
@@ -40,7 +34,8 @@ const DAFTAR_PAKET: ServicePackage[] = [
     price: 150000,
     estimatedDuration: "1 - 2 Jam",
     iconName: "snow-outline",
-    description: "Pembersihan debu kipas, heatsink, dan repaste pasta thermal premium.",
+    description:
+      "Pembersihan debu kipas, heatsink, dan repaste pasta thermal premium.",
   },
   {
     id: 2,
@@ -49,7 +44,8 @@ const DAFTAR_PAKET: ServicePackage[] = [
     price: 100000,
     estimatedDuration: "2 - 3 Jam",
     iconName: "desktop-outline",
-    description: "Instalasi Windows/Linux/macOS bersih, driver, dan aplikasi standar.",
+    description:
+      "Instalasi Windows/Linux/macOS bersih, driver, dan aplikasi standar.",
   },
   {
     id: 3,
@@ -58,7 +54,8 @@ const DAFTAR_PAKET: ServicePackage[] = [
     price: 75000,
     estimatedDuration: "1 Jam",
     iconName: "hardware-chip-outline",
-    description: "Jasa pasang SSD NVMe/SATA dan RAM + cloning data (belum termasuk part).",
+    description:
+      "Jasa pasang SSD NVMe/SATA dan RAM + cloning data (belum termasuk part).",
   },
   {
     id: 4,
@@ -67,7 +64,8 @@ const DAFTAR_PAKET: ServicePackage[] = [
     price: 120000,
     estimatedDuration: "1 Hari",
     iconName: "keypad-outline",
-    description: "Penggantian modul keyboard eror atau baterai laptop drop/kembung.",
+    description:
+      "Penggantian modul keyboard eror atau baterai laptop drop/kembung.",
   },
   {
     id: 5,
@@ -76,11 +74,12 @@ const DAFTAR_PAKET: ServicePackage[] = [
     price: 450000,
     estimatedDuration: "2 - 4 Hari",
     iconName: "construct-outline",
-    description: "Perbaikan mati total, no display, korsleting jalur daya motherboard.",
+    description:
+      "Perbaikan mati total, no display, korsleting jalur daya motherboard.",
   },
 ];
 
-// Data Antrean Awal Servis Laptop Pelanggan
+// Data Antrean Pelanggan
 const INITIAL_SERVICES: ServiceItem[] = [
   {
     id: "TK-001",
@@ -136,16 +135,21 @@ const INITIAL_SERVICES: ServiceItem[] = [
   },
 ];
 
-// Kategori Filter
-const KATEGORI_LIST: ServiceCategory[] = ["Semua", "Hardware", "Software", "Cleaning", "Upgrade"];
+// Kategori Layanan Servis Laptop
+const KATEGORI_LIST: ServiceCategory[] = [
+  "Semua",
+  "Hardware",
+  "Software",
+  "Cleaning",
+  "Upgrade",
+];
 
-// ============================================================================
-// KOMPONEN UTAMA (ENTRY POINT)
-// ============================================================================
+//Main
 export default function TeknisiKuHomeScreen() {
-  // State Management Sederhana
+  // State Management
   const [services, setServices] = useState<ServiceItem[]>(INITIAL_SERVICES);
-  const [selectedCategory, setSelectedCategory] = useState<ServiceCategory>("Semua");
+  const [selectedCategory, setSelectedCategory] =
+    useState<ServiceCategory>("Semua");
 
   // State Form Input Tambah Servis
   const [inputNama, setInputNama] = useState<string>("");
@@ -154,9 +158,18 @@ export default function TeknisiKuHomeScreen() {
   const [inputBiaya, setInputBiaya] = useState<string>("");
   const [isUrgentInput, setIsUrgentInput] = useState<boolean>(false);
 
-  // ==========================================================================
-  // MATERI 5.3: CUSTOM FUNCTIONS
-  // ==========================================================================
+  const router = useRouter();
+  const handleBukaHalamanDetail = (item: ServiceItem) => {
+    router.push({
+      pathname: "../service/[id]",
+      params: {
+        id: String(item.id),
+        customerName: item.customerName,
+        laptopModel: item.laptopModel,
+        status: item.status,
+      },
+    });
+  };
 
   // 1. Custom Function: Format Angka ke Rupiah
   const formatRupiah = (nominal: number): string => {
@@ -164,7 +177,6 @@ export default function TeknisiKuHomeScreen() {
   };
 
   // 2. Custom Function dengan Primitive Loop (for & while): Menghitung Statistik Servis
-  // (Materi Modul 1: 5.4.C Primitive Loop)
   const hitungRingkasanServis = (dataList: ServiceItem[]): ServiceSummary => {
     let totalPendapatan = 0;
     let prosesCount = 0;
@@ -182,7 +194,10 @@ export default function TeknisiKuHomeScreen() {
       const statusSaatIni = dataList[j].status;
       if (statusSaatIni === "Proses") {
         prosesCount++;
-      } else if (statusSaatIni === "Selesai" || statusSaatIni === "Bisa Diambil") {
+      } else if (
+        statusSaatIni === "Selesai" ||
+        statusSaatIni === "Bisa Diambil"
+      ) {
         selesaiCount++;
       } else if (statusSaatIni === "Menunggu") {
         menungguCount++;
@@ -203,9 +218,10 @@ export default function TeknisiKuHomeScreen() {
   const summary: ServiceSummary = hitungRingkasanServis(services);
 
   // 3. Custom Function: Menampilkan Detail Servis & Alert Bawaan
-  // (Materi Modul 1: 5.3.A Function Bawaan Alert & 5.3.B Custom Function)
   const handleTampilkanDetail = (item: ServiceItem) => {
-    const technicianInfo = item.technician ? item.technician : "Belum Ditugaskan";
+    const technicianInfo = item.technician
+      ? item.technician
+      : "Belum Ditugaskan";
     const urgentInfo = item.isUrgent ? "Ya (Prioritas Cepat)" : "Reguler";
 
     Alert.alert(
@@ -220,7 +236,7 @@ export default function TeknisiKuHomeScreen() {
           text: "Tutup",
           style: "cancel",
         },
-      ]
+      ],
     );
   };
 
@@ -245,8 +261,15 @@ export default function TeknisiKuHomeScreen() {
 
   // 5. Custom Function: Menambahkan Antrean Servis Baru
   const handleTambahServis = () => {
-    if (inputNama.trim() === "" || inputModel.trim() === "" || inputKeluhan.trim() === "") {
-      Alert.alert("Peringatan", "Mohon lengkapi Nama, Model Laptop, dan Keluhan!");
+    if (
+      inputNama.trim() === "" ||
+      inputModel.trim() === "" ||
+      inputKeluhan.trim() === ""
+    ) {
+      Alert.alert(
+        "Peringatan",
+        "Mohon lengkapi Nama, Model Laptop, dan Keluhan!",
+      );
       return;
     }
 
@@ -274,11 +297,16 @@ export default function TeknisiKuHomeScreen() {
     setInputBiaya("");
     setIsUrgentInput(false);
 
-    Alert.alert("Sukses", `Servis laptop untuk ${inputNama} berhasil didaftarkan ke antrean!`);
+    Alert.alert(
+      "Sukses",
+      `Servis laptop untuk ${inputNama} berhasil didaftarkan ke antrean!`,
+    );
   };
 
   // 6. Custom Function: Helper untuk Mendapatkan Warna Status (untuk Inline Styling Dinamis)
-  const getStatusColor = (status: ServiceStatus): { bg: string; text: string } => {
+  const getStatusColor = (
+    status: ServiceStatus,
+  ): { bg: string; text: string } => {
     switch (status) {
       case "Proses":
         return { bg: "#FEF3C7", text: "#B45309" }; // Kuning Amber
@@ -293,7 +321,6 @@ export default function TeknisiKuHomeScreen() {
   };
 
   // 7. Custom Function: Custom Card Renderer untuk Paket Layanan
-  // (Materi Modul 1: 5.3.B Custom Function yang mengembalikan JSX)
   const renderPackageCard = (pkg: ServicePackage) => {
     return (
       <View key={pkg.id} style={localStyles.packageCard}>
@@ -304,8 +331,12 @@ export default function TeknisiKuHomeScreen() {
           <Text style={localStyles.packageTitle}>{pkg.title}</Text>
           <Text style={localStyles.packageDesc}>{pkg.description}</Text>
           <View style={localStyles.packageMetaRow}>
-            <Text style={localStyles.packagePrice}>{formatRupiah(pkg.price)}</Text>
-            <Text style={localStyles.packageDuration}>⏱ {pkg.estimatedDuration}</Text>
+            <Text style={localStyles.packagePrice}>
+              {formatRupiah(pkg.price)}
+            </Text>
+            <Text style={localStyles.packageDuration}>
+              ⏱ {pkg.estimatedDuration}
+            </Text>
           </View>
         </View>
       </View>
@@ -326,9 +357,7 @@ export default function TeknisiKuHomeScreen() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={externalStyles.scrollContent}
       >
-        {/* ================================================================== */}
-        {/* HEADER APLIKASI TEKNISIKU                                          */}
-        {/* ================================================================== */}
+        {/* HEADER APLIKASI TEKNISIKU*/}
         <View style={externalStyles.headerBanner}>
           <View style={externalStyles.headerTopRow}>
             <View style={{ flex: 1 }}>
@@ -338,7 +367,9 @@ export default function TeknisiKuHomeScreen() {
               </Text>
             </View>
             <Image
-              source={{ uri: "https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=160&q=80" }}
+              source={{
+                uri: "https://images.unsplash.com/photo-1588872657578-7efd1f1555ed?w=160&q=80",
+              }}
               style={localStyles.headerAvatar}
             />
           </View>
@@ -357,19 +388,26 @@ export default function TeknisiKuHomeScreen() {
             }}
           >
             <Ionicons name="checkmark-circle" size={16} color="#86EFAC" />
-            <Text style={{ color: "#FFFFFF", fontSize: 12, fontWeight: "600", marginLeft: 6 }}>
+            <Text
+              style={{
+                color: "#FFFFFF",
+                fontSize: 12,
+                fontWeight: "600",
+                marginLeft: 6,
+              }}
+            >
               Workshop Buka: 08.00 - 21.00 WIB
             </Text>
           </View>
         </View>
 
-        {/* ================================================================== */}
-        {/* WIDGET RINGKASAN STATISTIK (Dihitung Menggunakan Loop for & while)  */}
-        {/* ================================================================== */}
+        {/* WIDGET RINGKASAN STATISTIK*/}
         <View style={externalStyles.sectionHeader}>
           <Text style={externalStyles.sectionTitle}>Ringkasan Bengkel</Text>
           <View style={externalStyles.sectionBadge}>
-            <Text style={externalStyles.sectionBadgeText}>{summary.totalOrders} Unit Masuk</Text>
+            <Text style={externalStyles.sectionBadgeText}>
+              {summary.totalOrders} Unit Masuk
+            </Text>
           </View>
         </View>
 
@@ -377,26 +415,36 @@ export default function TeknisiKuHomeScreen() {
           {/* Card 1: Dalam Proses */}
           <View style={externalStyles.statCard}>
             <Ionicons name="construct-outline" size={20} color="#D97706" />
-            <Text style={externalStyles.statNumber}>{summary.inProgressCount}</Text>
+            <Text style={externalStyles.statNumber}>
+              {summary.inProgressCount}
+            </Text>
             <Text style={externalStyles.statLabel}>Pengerjaan</Text>
           </View>
 
           {/* Card 2: Menunggu Antrean */}
           <View style={externalStyles.statCard}>
             <Ionicons name="time-outline" size={20} color="#64748B" />
-            <Text style={externalStyles.statNumber}>{summary.pendingCount}</Text>
+            <Text style={externalStyles.statNumber}>
+              {summary.pendingCount}
+            </Text>
             <Text style={externalStyles.statLabel}>Antrean</Text>
           </View>
 
           {/* Card 3: Selesai */}
           <View style={externalStyles.statCard}>
-            <Ionicons name="checkmark-done-circle-outline" size={20} color="#16A34A" />
-            <Text style={externalStyles.statNumber}>{summary.completedCount}</Text>
+            <Ionicons
+              name="checkmark-done-circle-outline"
+              size={20}
+              color="#16A34A"
+            />
+            <Text style={externalStyles.statNumber}>
+              {summary.completedCount}
+            </Text>
             <Text style={externalStyles.statLabel}>Selesai</Text>
           </View>
         </View>
 
-        {/* Card Total Estimasi Biaya dengan Inline Styling */}
+        {/* Card Total Estimasi Biaya*/}
         <View
           style={{
             backgroundColor: "#EFF6FF",
@@ -414,18 +462,25 @@ export default function TeknisiKuHomeScreen() {
             <Text style={{ fontSize: 12, color: "#1E40AF", fontWeight: "600" }}>
               Total Nilai Estimasi Servis Aktif
             </Text>
-            <Text style={{ fontSize: 18, color: "#1D4ED8", fontWeight: "bold", marginTop: 2 }}>
+            <Text
+              style={{
+                fontSize: 18,
+                color: "#1D4ED8",
+                fontWeight: "bold",
+                marginTop: 2,
+              }}
+            >
               {formatRupiah(summary.totalRevenue)}
             </Text>
           </View>
           <Ionicons name="wallet-outline" size={28} color="#2563EB" />
         </View>
 
-        {/* ================================================================== */}
-        {/* FORM INPUT DAFTAR SERVIS BARU (TextInput & Button Dasar)          */}
-        {/* ================================================================== */}
+        {/* FORM INPUT DAFTAR SERVIS BARU*/}
         <View style={localStyles.formContainer}>
-          <Text style={localStyles.formHeaderTitle}>📝 Tambah Antrean Servis Baru</Text>
+          <Text style={localStyles.formHeaderTitle}>
+            📝 Tambah Antrean Servis Baru
+          </Text>
 
           <TextInput
             style={externalStyles.inputBox}
@@ -488,17 +543,25 @@ export default function TeknisiKuHomeScreen() {
           </Pressable>
 
           {/* Button Bawaan React Native */}
-          <Button title="Simpan ke Daftar Antrean" color="#2563EB" onPress={handleTambahServis} />
+          <Button
+            title="Simpan ke Daftar Antrean"
+            color="#2563EB"
+            onPress={handleTambahServis}
+          />
         </View>
 
-        {/* ================================================================== */}
-        {/* MATERI 5.4.A: LOOPING .map() UNTUK FILTER KATEGORI                */}
-        {/* ================================================================== */}
+        {/* LOOPING .map() UNTUK FILTER KATEGORI */}
         <View style={externalStyles.sectionHeader}>
-          <Text style={externalStyles.sectionTitle}>Filter Kategori Layanan</Text>
+          <Text style={externalStyles.sectionTitle}>
+            Filter Kategori Layanan
+          </Text>
         </View>
 
-        <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 14 }}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={{ marginBottom: 14 }}
+        >
           {/* Looping kategori dengan .map() */}
           {KATEGORI_LIST.map((kategori, index) => {
             const isSelected = selectedCategory === kategori;
@@ -531,9 +594,7 @@ export default function TeknisiKuHomeScreen() {
           })}
         </ScrollView>
 
-        {/* ================================================================== */}
-        {/* DAFTAR ANTREAN SERVIS (Array of Objects & Inline + External Style) */}
-        {/* ================================================================== */}
+        {/* DAFTAR ANTREAN SERVIS*/}
         <View style={externalStyles.sectionHeader}>
           <Text style={externalStyles.sectionTitle}>
             Daftar Unit Diservis ({filteredServices.length})
@@ -550,14 +611,24 @@ export default function TeknisiKuHomeScreen() {
               style={[
                 externalStyles.serviceCardBase,
                 // Inline Styling Dinamis: Tambah border merah jika servis Urgent
-                service.isUrgent ? { borderColor: "#FCA5A5", borderWidth: 1.5 } : {},
+                service.isUrgent
+                  ? { borderColor: "#FCA5A5", borderWidth: 1.5 }
+                  : {},
               ]}
             >
               {/* Header Card */}
               <View style={externalStyles.cardHeader}>
                 <View style={{ flex: 1 }}>
-                  <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-                    <Text style={externalStyles.customerName}>{service.customerName}</Text>
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: 6,
+                    }}
+                  >
+                    <Text style={externalStyles.customerName}>
+                      {service.customerName}
+                    </Text>
                     {service.isUrgent && (
                       <View
                         style={{
@@ -567,13 +638,21 @@ export default function TeknisiKuHomeScreen() {
                           borderRadius: 4,
                         }}
                       >
-                        <Text style={{ color: "#DC2626", fontSize: 10, fontWeight: "bold" }}>
+                        <Text
+                          style={{
+                            color: "#DC2626",
+                            fontSize: 10,
+                            fontWeight: "bold",
+                          }}
+                        >
                           ⚡ URGENT
                         </Text>
                       </View>
                     )}
                   </View>
-                  <Text style={externalStyles.laptopModel}>{service.laptopModel}</Text>
+                  <Text style={externalStyles.laptopModel}>
+                    {service.laptopModel}
+                  </Text>
                 </View>
 
                 {/* Badge Status dengan Inline Styling */}
@@ -585,7 +664,13 @@ export default function TeknisiKuHomeScreen() {
                     borderRadius: 12,
                   }}
                 >
-                  <Text style={{ color: statusStyle.text, fontSize: 12, fontWeight: "bold" }}>
+                  <Text
+                    style={{
+                      color: statusStyle.text,
+                      fontSize: 12,
+                      fontWeight: "bold",
+                    }}
+                  >
                     {service.status}
                   </Text>
                 </View>
@@ -593,46 +678,64 @@ export default function TeknisiKuHomeScreen() {
 
               {/* Keluhan Kerusakan */}
               <Text style={externalStyles.issueText}>
-                <Text style={{ fontWeight: "600", color: "#334155" }}>Keluhan: </Text>
+                <Text style={{ fontWeight: "600", color: "#334155" }}>
+                  Keluhan:{" "}
+                </Text>
                 {service.issue}
               </Text>
 
               {/* Teknisi Bertugas (Properti Opsional ?) */}
               <Text style={{ fontSize: 12, color: "#64748B", marginTop: 4 }}>
-                Teknisi: {service.technician ?? "Belum Ditugaskan"} • Masuk: {service.entryDate}
+                Teknisi: {service.technician ?? "Belum Ditugaskan"} • Masuk:{" "}
+                {service.entryDate}
               </Text>
 
               {/* Footer Card & Tombol Aksi */}
               <View style={externalStyles.cardFooter}>
                 <View>
                   <Text style={externalStyles.costLabel}>Estimasi Biaya</Text>
-                  <Text style={externalStyles.costValue}>{formatRupiah(service.estimatedCost)}</Text>
+                  <Text style={externalStyles.costValue}>
+                    {formatRupiah(service.estimatedCost)}
+                  </Text>
                 </View>
 
-                {/* Pressable untuk memanggil Custom Function */}
-                <Pressable
-                  onPress={() => handleTampilkanDetail(service)}
-                  style={localStyles.actionButton}
-                >
-                  <Ionicons name="eye-outline" size={14} color="#2563EB" />
-                  <Text style={localStyles.actionButtonText}>Detail & Update</Text>
-                </Pressable>
+                {/* Dua tombol aksi dalam satu baris */}
+                <View style={{ flexDirection: "row", gap: 8 }}>
+                  <Pressable
+                    onPress={() => handleTampilkanDetail(service)}
+                    style={localStyles.actionButton}
+                  >
+                    <Ionicons name="eye-outline" size={14} color="#2563EB" />
+                    <Text style={localStyles.actionButtonText}>
+                      Detail & Update
+                    </Text>
+                  </Pressable>
+                  <Pressable
+                    onPress={() => handleBukaHalamanDetail(service)}
+                    style={localStyles.actionButton}
+                  >
+                    <Ionicons name="open-outline" size={14} color="#2563EB" />
+                    <Text style={localStyles.actionButtonText}>
+                      Buka Halaman
+                    </Text>
+                  </Pressable>
+                </View>
               </View>
             </View>
           );
         })}
 
-        {/* ================================================================== */}
-        {/* PAKET LAYANAN SERVIS KILAT (Custom Function Renderer)              */}
-        {/* ================================================================== */}
+        {/* PAKET LAYANAN SERVIS KILAT*/}
         <View style={externalStyles.sectionHeader}>
-          <Text style={externalStyles.sectionTitle}>Pilihan Paket Jasa TeknisiKu</Text>
+          <Text style={externalStyles.sectionTitle}>
+            Pilihan Paket Jasa TeknisiKu
+          </Text>
           <View style={externalStyles.sectionBadge}>
             <Text style={externalStyles.sectionBadgeText}>Garansi Servis</Text>
           </View>
         </View>
 
-        {/* Looping Paket Layanan menggunakan Custom Function renderPackageCard */}
+        {/* Paket Layanan*/}
         {DAFTAR_PAKET.map((pkg) => renderPackageCard(pkg))}
 
         {/* Banner Info Bantuan */}
@@ -646,7 +749,14 @@ export default function TeknisiKuHomeScreen() {
           }}
         >
           <Ionicons name="headset-outline" size={32} color="#60A5FA" />
-          <Text style={{ color: "#FFFFFF", fontSize: 15, fontWeight: "bold", marginTop: 6 }}>
+          <Text
+            style={{
+              color: "#FFFFFF",
+              fontSize: 15,
+              fontWeight: "bold",
+              marginTop: 6,
+            }}
+          >
             Butuh Konsultasi Kerusakan Laptop?
           </Text>
           <Text
@@ -662,7 +772,10 @@ export default function TeknisiKuHomeScreen() {
           </Text>
           <Pressable
             onPress={() =>
-              Alert.alert("Customer Care", "Layanan CS TeknisiKu dapat dihubungi di: 0812-3456-7890")
+              Alert.alert(
+                "Customer Care",
+                "Layanan CS TeknisiKu dapat dihubungi di: 0812-3456-7890",
+              )
             }
             style={{
               backgroundColor: "#2563EB",
@@ -671,7 +784,9 @@ export default function TeknisiKuHomeScreen() {
               borderRadius: 8,
             }}
           >
-            <Text style={{ color: "#FFFFFF", fontSize: 13, fontWeight: "bold" }}>
+            <Text
+              style={{ color: "#FFFFFF", fontSize: 13, fontWeight: "bold" }}
+            >
               Hubungi WhatsApp Teknisi
             </Text>
           </Pressable>
@@ -681,9 +796,7 @@ export default function TeknisiKuHomeScreen() {
   );
 }
 
-// ============================================================================
-// MATERI 3.1: INTERNAL STYLING (StyleSheet.create di dalam file yang sama)
-// ============================================================================
+// INTERNAL STYLING
 const localStyles = StyleSheet.create({
   headerAvatar: {
     width: 56,
