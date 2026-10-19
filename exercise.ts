@@ -1,0 +1,52 @@
+// ============================================================================
+// CODELAB-5 (MODUL 1 - SINTAKS DASAR TYPESCRIPT)
+// ============================================================================
+
+interface Student {
+  name: string;
+  age: number | string;
+  score: number;
+}
+
+const students: Student[] = [
+  {
+    name: "Andi",
+    age: 20,
+    score: 85,
+  },
+  {
+    name: "Budi",
+    age: 19,
+    score: 70,
+  },
+  {
+    name: "Citra",
+    age: "21",
+    score: 90,
+  },
+];
+
+function getGrade(score: number): string {
+  if (score >= 80) {
+    return "A";
+  } else if (score >= 70) {
+    return "B";
+  } else {
+    return "C";
+  }
+}
+
+// Looping dengan .map()
+students.map((student) => {
+  const grade = getGrade(student.score);
+  if (Number(student.age) >= 20) {
+    console.log(student.name + " - " + grade);
+  }
+});
+
+// Primitive loop dengan while
+let i: number = 0;
+while (i < students.length) {
+  console.log("Student: " + students[i].name);
+  i++;
+}
